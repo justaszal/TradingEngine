@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+    trading_engine:
+        build: ./trader
+        volumes:
+            - ./trader:/trader
+        ports:
+            - ${TRADING_ENGINE_PORT}:${TRADING_ENGINE_PORT}
+        tty: true
+    storage:
+        image: mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+        volumes:
+            - "./storage/my.conf:/etc/mysql/conf.d/config-file.cnf"
+            - "./storage/data/:/var/lib/mysql:rw"
+        ports:
+            - ${STORAGE_PORT}:${MYSQL_PORT}

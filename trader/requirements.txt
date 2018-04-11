@@ -1,0 +1,8 @@
+ccxt
+pandas
+pytz
+fn
+cytoolz
+pytest
+#python linter
+pycodestyle
