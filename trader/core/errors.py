@@ -3,7 +3,6 @@ class Error(Exception):
 
     def __init__(self, **kwargs):
         self.kwargs = kwargs
-        print(self.msg)
 
     def __str__(self):
         return self.msg.format(**self.kwargs)
