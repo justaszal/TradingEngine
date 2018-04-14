@@ -5,6 +5,7 @@ from ccxt import (NetworkError,
                   ExchangeError)
 from .exchange_errors import (ExchangeNotFoundError,
                               InvalidHistoryTimeframeError,
+                              InvalidTickerError,
                               ExchangeRequestError)
 from toolz import pipe
 
@@ -16,10 +17,10 @@ class CCXT:
             self.api = getattr(ccxt, name)({
                 'enableRateLimit': True
             })
-            self.load_markets()
+            self.markets = self.load_markets()
             self.name = name
         except Exception:
-            raise ExchangeNotFoundError(name=name)
+            raise ExchangeNotFoundError(exhange_name=name)
 
     def load_markets(self):
         """
@@ -28,14 +29,13 @@ class CCXT:
         two HTTP requests, first for markets and then the second one
         for other data, sequentially.
         """
-        print('load')
-        return self.api.load_markets() if self.api else None
+        return self.api.load_markets()
 
-    def get_klines(self, symbol, timeframe, params={}):
+    def get_klines(self, ticker, timeframe, params={}):
         """Gets candlestick history (binance)
 
         Args:
-            symbol (String): uppercase ticker like BTC/USDT - mandatory
+            ticker (String): uppercase ticker like BTC/USDT - mandatory
             timeframe (String): candle frequency - mandatory
             params (Dict, optional): {
                 limit (Int): limit of candles
@@ -63,7 +63,7 @@ class CCXT:
 
         api_params = {
             **{
-                'symbol': symbol,
+                'ticker': ticker,
                 'interval': timeframe
             },
             **params
@@ -88,13 +88,12 @@ class CCXT:
 
         return limit
 
-    def get_candles(self, symbol, timeframe, start_dt, end_dt=None, limit=None,
+    def get_candles(self, ticker, timeframe, start_dt, end_dt=None, limit=None,
                     params={}):
-        if not getattr(self.api, 'fetch_ohlcv'):
-            raise AttributeError
 
-        if not self.is_timeframe(timeframe):
-            raise InvalidHistoryTimeframeError(timeframe=timeframe)
+        self.verify_api_attribute('fetch_ohlcv')
+        self.verify_ticker(ticker)
+        self.verify_timeframe(timeframe)
 
         limit = self.get_fech_ohlcv_limit(
             timeframe, start_dt, end_dt, limit)
@@ -104,7 +103,7 @@ class CCXT:
 
         api_params = {
             **{
-                'symbol': symbol,
+                'symbol': ticker,
                 'timeframe': timeframe,
                 'since': date_utils.timestamp_ms_short(start_dt)
             },
@@ -129,6 +128,21 @@ class CCXT:
             raise ExchangeRequestError(e)
 
         return candles
+
+    def verify_ticker(self, ticker):
+        if not self.is_ticker(ticker):
+            raise InvalidTickerError(exhange_name=self.name, ticker=ticker)
+
+    def verify_api_attribute(self, attribute):
+        if not hasattr(self.api, attribute):
+            raise AttributeError
+
+    def verify_timeframe(self, timeframe):
+        if not self.is_timeframe(timeframe):
+            raise InvalidHistoryTimeframeError(timeframe=timeframe)
+
+    def is_ticker(self, ticker):
+        return ticker in self.markets
 
     def is_timeframe(self, t):
         return t in self.api.timeframes
