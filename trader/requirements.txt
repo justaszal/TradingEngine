@@ -3,6 +3,7 @@ pandas
 pytz
 fn
 cytoolz
+rx
 pytest
 #python linter
 pycodestyle
