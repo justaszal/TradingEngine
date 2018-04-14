@@ -6,14 +6,8 @@ from unittest.mock import patch, Mock
 from toolz import curry
 from random import randint
 from functools import reduce
-
-
-"""
-    TODO
-
-    Add project to github
-
-"""
+from core.exchange.exchange_errors import (ExchangeNotFoundError,
+                                           InvalidHistoryTimeframeError)
 
 
 @curry
@@ -50,15 +44,21 @@ def days_generator_2018_01(*args):
     )
 
 
-@pytest.fixture(scope="session", params=[CCXT])
-def binance(request):
-    request.param.load_markets = lambda _: None
-    exchange = request.param('binance')
+@pytest.fixture(scope="module")
+def binance(request, markets):
+    CCXT = request.module.CCXT
+    CCXT.load_markets = lambda _: None
+    exchange = CCXT('binance')
+    exchange.markets = markets['binance']
     exchange.api.fetch_ohlcv = Mock(side_effect=fetch_ohlcv)
     return exchange
 
 
 class TestCCXTExchange():
+    def test_CCXT_ExchangeNotFoundError(self):
+        with pytest.raises(ExchangeNotFoundError):
+            CCXT('non-existing exchange name')
+
     @pytest.mark.parametrize('timeframe, two_sequential_days, limit,\
                               expected_limit',
                              [
@@ -91,9 +91,18 @@ class TestCCXTExchange():
                                   1248),
                                  ('BTC/USDT', '1h',
                                   days_generator_2018_01(1, 2),
-                                  24)
+                                  24),
+                                 ('BTC/USDT', '1d',
+                                  days_generator_2018_01(1, 2),
+                                  1)
                              ])
     def test_get_candles_api_parameters(self, binance, symbol, timeframe,
                                         dates, expected_candles):
         candles = binance.get_candles(symbol, timeframe, *dates)
         assert len(candles) == expected_candles
+
+    def test_get_candles_InvalidHistoryTimeframeError(self, binance):
+        with pytest.raises(InvalidHistoryTimeframeError):
+            binance.get_candles('BTC/USDT', '1D',
+                                days_generator_2018_01(1, 2),
+                                1)

@@ -23,3 +23,13 @@ def two_sequential_days(request):
             hasattr(request, 'param') and
             request.param is not None else
             dates)
+
+
+@pytest.fixture(scope='session')
+def markets(request):
+    return {
+        'binance': {
+                'BTC/USDT': {},
+                'ETH/USDT': {}
+            }
+    }
