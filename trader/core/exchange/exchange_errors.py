@@ -3,8 +3,8 @@ from core.errors import Error
 
 class ExchangeNotFoundError(Error):
     msg = (
-        'Exchange {exhange_name} not found. Please specify exchange'
-        'supported, verify spelling for accuracy and check internet'
+        'Exchange {exhange_name} not found. Please specify exchange '
+        'supported, verify spelling for accuracy and check internet '
         'connection.'
     )
 
