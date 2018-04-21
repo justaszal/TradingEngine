@@ -1,4 +1,5 @@
-import ccxt
+import ccxt.async as ccxt
+import asyncio
 import core.utils.date_utils as date_utils
 import core.utils.filters as filters
 from ccxt import (NetworkError,
@@ -7,29 +8,40 @@ from .exchange_errors import (ExchangeNotFoundError,
                               InvalidHistoryTimeframeError,
                               InvalidTickerError,
                               ExchangeRequestError)
-from toolz import pipe
+from toolz import pipe, compose
 
 
 class CCXT:
+
+    __loop = asyncio.get_event_loop()
+
+    @property
+    def loop(self):
+        return CCXT.__loop
 
     def __init__(self, name):
         try:
             self.api = getattr(ccxt, name)({
                 'enableRateLimit': True
             })
-            self.markets = self.load_markets()
+            self.markets = compose(
+                self.loop.run_until_complete
+            )(self.load_markets())
             self.name = name
         except Exception:
             raise ExchangeNotFoundError(exhange_name=name)
 
-    def load_markets(self):
+    async def load_markets(self):
         """
         If you forget to load markets the ccxt library will do that
         automatically upon first call to the unified API. It will send
         two HTTP requests, first for markets and then the second one
         for other data, sequentially.
         """
-        return self.api.load_markets()
+        return await self.api.load_markets()
+
+    def close(self):
+        compose(self.loop.run_until_complete)(self.api.close())
 
     def get_klines(self, ticker, timeframe, params={}):
         """Gets candlestick history (binance)
@@ -88,9 +100,8 @@ class CCXT:
 
         return limit
 
-    def get_candles(self, ticker, timeframe, start_dt, end_dt=None, limit=None,
-                    params={}):
-
+    async def get_candles(self, ticker, timeframe, start_dt, end_dt=None,
+                          limit=None, params={}):
         self.verify_api_attribute('fetch_ohlcv')
         self.verify_ticker(ticker)
         self.verify_timeframe(timeframe)
@@ -113,16 +124,12 @@ class CCXT:
 
         try:
             while api_params['limit'] > 0:
-                fetched_candles = self.api.fetch_ohlcv(**api_params)
+                fetched_candles = await self.api.fetch_ohlcv(**api_params)
                 candles += fetched_candles
                 candles_count = len(fetched_candles)
                 api_params['since'] += date_utils.timeframes_to_seconds(
                     timeframe, candles_count)
                 api_params['limit'] -= candles_count
-                # print('limit: ', api_params['limit'])
-                # print('candles_count: ', candles_count)
-                # print('candles to seconds: ', date_utils.timeframes_to_seconds(
-                #     timeframe, candles_count))
 
         except (ExchangeError, NetworkError) as e:
             raise ExchangeRequestError(e)
@@ -146,12 +153,3 @@ class CCXT:
 
     def is_timeframe(self, t):
         return t in self.api.timeframes
-
-# 1514764800000
-# group1 = asyncio.gather(
-#     binance.get_candles('BTCUSDT', '1h', 1)
-#     # binance.poll()
-# )
-
-# r = loop.run_until_complete(group1)
-# # await binance.api.close()

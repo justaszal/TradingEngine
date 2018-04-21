@@ -1,9 +1,10 @@
 import pytest
 import datetime
+import asyncio
 import core.utils.date_utils as date_utils
 from core.exchange.ccxt_exchange import CCXT
-from unittest.mock import patch, Mock
-from toolz import curry
+from unittest.mock import Mock
+from toolz import curry, compose
 from random import randint
 from functools import reduce
 from core.exchange.exchange_errors import (ExchangeNotFoundError,
@@ -16,7 +17,7 @@ def append(arr, x):
     return arr
 
 
-def fetch_ohlcv(symbol, timeframe, since, limit=1000):
+async def fetch_ohlcv(symbol, timeframe, since, limit=1000):
     return reduce(
         lambda data_set, ohlcv: append(
             data_set,
@@ -44,14 +45,24 @@ def days_generator_2018_01(*args):
     )
 
 
+async def noop(*args):
+    await asyncio.sleep(0)
+
+
 @pytest.fixture(scope="module")
 def binance(request, markets):
     CCXT = request.module.CCXT
-    CCXT.load_markets = lambda _: None
     exchange = CCXT('binance')
     exchange.markets = markets['binance']
+    exchange.load_markets = Mock(side_effect=noop)
     exchange.api.fetch_ohlcv = Mock(side_effect=fetch_ohlcv)
+
+    request.addfinalizer(lambda: exchange.close())
     return exchange
+
+
+def setup_module(module):
+    CCXT.load_markets = Mock(side_effect=noop)
 
 
 class TestCCXTExchange():
@@ -77,10 +88,10 @@ class TestCCXTExchange():
                                          limit=limit,
                                          ) == expected_limit
 
-    @patch('core.exchange.ccxt_exchange.CCXT.load_markets')
-    def test_CCXT_constructor_loads_markets(self, load_markets):
+    def test_CCXT_constructor_loads_markets(self):
         binance = CCXT('binance')
-        assert load_markets.called
+        binance.close()
+        assert binance.load_markets.called
 
     @pytest.mark.parametrize('symbol, timeframe, dates, expected_candles',
                              [
@@ -98,11 +109,15 @@ class TestCCXTExchange():
                              ])
     def test_get_candles_api_parameters(self, binance, symbol, timeframe,
                                         dates, expected_candles):
-        candles = binance.get_candles(symbol, timeframe, *dates)
+        candles = compose(binance.loop.run_until_complete)(
+            binance.get_candles(symbol, timeframe, *dates)
+        )
         assert len(candles) == expected_candles
 
     def test_get_candles_InvalidHistoryTimeframeError(self, binance):
         with pytest.raises(InvalidHistoryTimeframeError):
-            binance.get_candles('BTC/USDT', '1D',
-                                days_generator_2018_01(1, 2),
-                                1)
+            compose(binance.loop.run_until_complete)(
+                binance.get_candles('BTC/USDT', '1D',
+                                    days_generator_2018_01(1, 2),
+                                    1)
+            )
