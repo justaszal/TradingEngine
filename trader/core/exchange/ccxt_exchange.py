@@ -8,7 +8,7 @@ from .exchange_errors import (ExchangeNotFoundError,
                               InvalidHistoryTimeframeError,
                               InvalidTickerError,
                               ExchangeRequestError)
-from toolz import pipe, compose
+from toolz import pipe, compose, first
 
 
 class CCXT:
@@ -88,9 +88,9 @@ class CCXT:
 
         return candles
 
-    @staticmethod
-    def get_fech_ohlcv_limit(timeframe, start_dt, end_dt=None, limit=None):
-        if end_dt:
+    def get_fech_ohlcv_limit(self, timeframe, start_dt=None, end_dt=None,
+                             limit=None):
+        if (start_dt and end_dt):
             timeframes = date_utils.get_data_range_length(start_dt,
                                                           end_dt,
                                                           freq=timeframe)
@@ -100,36 +100,52 @@ class CCXT:
 
         return limit
 
-    async def get_candles(self, ticker, timeframe, start_dt, end_dt=None,
-                          limit=None, params={}):
+    def get_since_date(self, timeframe, start_dt=None, end_dt=None,
+                       limit=None):
+        since = None
+
+        if (start_dt is None and end_dt and limit):
+            limit_seconds = date_utils.timeframes_to_seconds(timeframe, limit)
+            since = date_utils.timestamp_ms_short(end_dt) - limit_seconds
+        elif (start_dt):
+            since = date_utils.timestamp_ms_short(start_dt)
+
+        return since
+
+    async def get_candles(self, ticker, timeframe='1m', start_dt=None,
+                          end_dt=None, limit=None, params={}):
         self.verify_api_attribute('fetch_ohlcv')
         self.verify_ticker(ticker)
         self.verify_timeframe(timeframe)
 
-        limit = self.get_fech_ohlcv_limit(
-            timeframe, start_dt, end_dt, limit)
-
-        if limit is not None:
-            params['limit'] = limit
-
+        params['since'] = self.get_since_date(timeframe, start_dt, end_dt,
+                                              limit)
+        params['limit'] = self.get_fech_ohlcv_limit(timeframe, start_dt,
+                                                    end_dt, limit)
         api_params = {
             **{
                 'symbol': ticker,
                 'timeframe': timeframe,
-                'since': date_utils.timestamp_ms_short(start_dt)
             },
-            **params
+            **filters.get_defined_dict_values(params)
         }
+
         candles = []
 
         try:
-            while api_params['limit'] > 0:
+            if api_params['limit'] is not None:
+                while api_params['limit'] > 0:
+                    fetched_candles = await self.api.fetch_ohlcv(**api_params)
+                    candles += fetched_candles
+                    candles_count = len(fetched_candles)
+                    api_params['since'] = first(fetched_candles)[0] + \
+                        date_utils.timeframes_to_seconds(
+                            timeframe, candles_count
+                    )
+                    api_params['limit'] -= candles_count
+            else:
                 fetched_candles = await self.api.fetch_ohlcv(**api_params)
                 candles += fetched_candles
-                candles_count = len(fetched_candles)
-                api_params['since'] += date_utils.timeframes_to_seconds(
-                    timeframe, candles_count)
-                api_params['limit'] -= candles_count
 
         except (ExchangeError, NetworkError) as e:
             raise ExchangeRequestError(e)

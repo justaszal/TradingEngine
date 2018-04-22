@@ -66,6 +66,7 @@ def setup_module(module):
 
 
 class TestCCXTExchange():
+
     def test_CCXT_ExchangeNotFoundError(self):
         with pytest.raises(ExchangeNotFoundError):
             CCXT('non-existing exchange name')
@@ -75,18 +76,32 @@ class TestCCXTExchange():
                              [
                                  ('1H', 0, None, None),
                                  ('1H', 0, 30, 30),
+                                 ('1H', 1, 30, 30),
                                  ('1H', None, None, 24),
                                  ('1H', None, 5, 5),
                                  ('1H', None, 30, 24)
                              ],
                              indirect=['two_sequential_days'])
     def test_get_fech_ohlcv_limit(self, timeframe, two_sequential_days, limit,
-                                  expected_limit):
-        assert CCXT.get_fech_ohlcv_limit(timeframe,
-                                         # array of start date and end date
-                                         *two_sequential_days,
-                                         limit=limit,
-                                         ) == expected_limit
+                                  expected_limit, binance):
+        assert binance.get_fech_ohlcv_limit(timeframe,
+                                            # array of start date and end date
+                                            *two_sequential_days,
+                                            limit=limit,
+                                            ) == expected_limit
+
+    @pytest.mark.parametrize('timeframe, start_dt, end_dt, limit,\
+                             expected_since_date',
+                             [
+                                 ('4h', None, datetime.datetime(2018, 1, 2),
+                                  1, 1514843985600),
+
+                             ])
+    def test_get_since_date(self, timeframe, start_dt, end_dt, limit,
+                            expected_since_date, binance):
+        assert binance.get_since_date(
+            timeframe, start_dt, end_dt, limit=limit
+        ) == expected_since_date
 
     def test_CCXT_constructor_loads_markets(self):
         binance = CCXT('binance')
@@ -107,8 +122,8 @@ class TestCCXTExchange():
                                   days_generator_2018_01(1, 2),
                                   1)
                              ])
-    def test_get_candles_api_parameters(self, binance, symbol, timeframe,
-                                        dates, expected_candles):
+    def test_get_candles_api_parameters(self, symbol, timeframe,
+                                        dates, expected_candles, binance):
         candles = compose(binance.loop.run_until_complete)(
             binance.get_candles(symbol, timeframe, *dates)
         )
