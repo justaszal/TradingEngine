@@ -89,16 +89,17 @@ def timestamp_strip_ms(timestamp):
     return timestamp if now_timestamp < timestamp else timestamp / 1000
 
 
-def date_range(start_date, end_date, freq):
+def date_range(start_date, end_date, freq, periods=None):
     return pd.date_range(
         start_date,
         end_date,
         # 'm' which stands for minute is equivalent to 'T' in pandas
-        freq=freq.replace('m', 'T')
+        freq=freq.replace('m', 'T'),
+        periods=periods
     )
 
 
-def date_range_length(t):
+def date_range_length(datetime_index, periods=None):
     """Get length of date_range list
 
     pd.date_range result of date_range is inclusive. Therefore last
@@ -111,13 +112,14 @@ def date_range_length(t):
     Returns:
         Int: date_range count
     """
-    return len(t) - 1
+    length = len(datetime_index)
+    return length if periods else length - 1
 
 
-def get_data_range_length(start_date, end_date, freq):
-    dt_index = date_range(start_date, end_date, freq)
+def get_data_range_length(start_date, end_date, freq, periods=None):
+    datetime_index = date_range(start_date, end_date, freq, periods)
 
-    return date_range_length(dt_index)
+    return date_range_length(datetime_index, periods)
 
 
 def timeframes_to_seconds(timeframe, timeframes=1):
