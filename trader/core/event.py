@@ -1,14 +1,19 @@
 from enum import Enum
 from abc import ABC
 
-event = Enum('event', 'TICK BAR SIGNAL ORDER FILL')
+EventTypes = Enum('event_types', 'TICK BAR SIGNAL ORDER FILL')
 
 
 class Event(ABC):
+    _type = None
 
     @property
     def type(self):
-        return self.name
+        return self._type
+
+    @type.setter
+    def type(self, value):
+        self._type = value
 
 
 class TickEvent(Event):
@@ -17,6 +22,7 @@ class TickEvent(Event):
     which is defined as a ticker symbol and associated best
     bid and ask from the top of the order book.
     """
+
     def __init__(self, ticker, time, bid, ask):
         """
         Initialises the TickEvent.
@@ -27,7 +33,7 @@ class TickEvent(Event):
         bid - The best bid price at the time of the tick.
         ask - The best ask price at the time of the tick.
         """
-        self.type = EventType.TICK
+        self.type = EventTypes.TICK
         self.ticker = ticker
         self.time = time
         self.bid = bid
@@ -45,17 +51,24 @@ class TickEvent(Event):
 
 class BarEvent(Event):
 
-    def __init__(self, open, close, low, high, volume, interval, timestamp):
-        self.type = EventType.BAR
+    def __init__(self, timestamp, open, high, low, close, volume, timeframe):
+        self.type = EventTypes.BAR
+        self.timestamp = timestamp
+
         # candlestick
         self.open = open
-        self.close = close
-        self.low = low
         self.high = high
+        self.low = low
+        self.close = close
 
         self.volume = volume
-        self.interval = interval
-        self.timestamp = timestamp
+        self.interval = timeframe
+
+    def __str__(self):
+        return "BarEvent: [{} {} {} {} {} {} {}]".format(
+            self.timestamp, self.open, self.high, self.low, self.close,
+            self.volume, self.interval
+        )
 
 
 class SignalEvent(Event):
@@ -63,6 +76,7 @@ class SignalEvent(Event):
     Handles the event of sending a Signal from a Strategy object.
     This is received by a Portfolio object and acted upon.
     """
+
     def __init__(self, ticker, action, suggested_quantity=None):
         """
         Initialises the SignalEvent.
@@ -75,7 +89,7 @@ class SignalEvent(Event):
             of an asset to transact in, which is used by the
             PositionSizer and RiskManager.
         """
-        self.type = EventType.SIGNAL
+        self.type = EventTypes.SIGNAL
         self.ticker = ticker
         self.action = action
         self.suggested_quantity = suggested_quantity
@@ -87,6 +101,7 @@ class OrderEvent(Event):
     The order contains a ticker (e.g. GOOG), action (BOT or SLD)
     and quantity.
     """
+
     def __init__(self, ticker, action, quantity):
         """
         Initialises the OrderEvent.
@@ -96,7 +111,7 @@ class OrderEvent(Event):
         action - 'BOT' (for long) or 'SLD' (for short).
         quantity - The quantity of shares to transact.
         """
-        self.type = EventType.ORDER
+        self.type = EventTypes.ORDER
         self.ticker = ticker
         self.action = action
         self.quantity = quantity
