@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 class AbstractPriceHandler(ABC):
@@ -12,31 +12,29 @@ class AbstractPriceHandler(ABC):
 
     This will replicate how a live strategy would function as current
     tick/bar data would be streamed via a brokerage. Thus a historic and live
-    system will be treated identically by the rest of the QSTrader suite.
+    system will be treated identically by the rest of the system.
     """
+
+    def __init__(self, tickers, exchange, events_queue, timeframe='1m'):
+        self.tickers = tickers
+        self.exchange = exchange
+        self.events_queue = events_queue
+        self.timeframe = timeframe
+
+    @abstractmethod
+    def stream_next(self):
+        raise NotImplementedError("Should implement stream_next")
+
     def unsubscribe_ticker(self, ticker):
         """
         Unsubscribes the price handler from a current ticker symbol.
         """
         try:
-            self.tickers.pop(ticker, None)
-            self.tickers_data.pop(ticker, None)
+            self.tickers.remove(ticker)
+            if getattr(self, tickers_data):
+                delattr(self.tickers_data, ticker)
         except KeyError:
             print(
                 "Could not unsubscribe ticker %s "
                 "as it was never subscribed." % ticker
             )
-
-    def get_last_timestamp(self, ticker):
-        """
-        Returns the most recent actual timestamp for a given ticker
-        """
-        if ticker in self.tickers:
-            timestamp = self.tickers[ticker]["timestamp"]
-            return timestamp
-        else:
-            print(
-                "Timestamp for ticker %s is not "
-                "available from the %s." % (ticker, self.__class__.__name__)
-            )
-            return None

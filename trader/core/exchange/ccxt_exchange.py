@@ -2,6 +2,7 @@ import ccxt.async as ccxt
 import asyncio
 import core.utils.date_utils as date_utils
 import core.utils.filters as filters
+from .base import ExchangeAsync
 from ccxt import (NetworkError,
                   ExchangeError)
 from .exchange_errors import (ExchangeNotFoundError,
@@ -11,13 +12,7 @@ from .exchange_errors import (ExchangeNotFoundError,
 from toolz import pipe, compose, first
 
 
-class CCXT:
-
-    __loop = asyncio.get_event_loop()
-
-    @property
-    def loop(self):
-        return CCXT.__loop
+class CCXT(ExchangeAsync):
 
     def __init__(self, name):
         try:
@@ -112,6 +107,9 @@ class CCXT:
 
         return since
 
+    async def fetch_ticker(self, ticker):
+        return await self.api.fetch_ticker(ticker)
+
     async def get_candles(self, ticker, timeframe='1m', start_dt=None,
                           end_dt=None, limit=None, params={}):
         self.verify_api_attribute('fetch_ohlcv')
@@ -167,5 +165,5 @@ class CCXT:
     def is_ticker(self, ticker):
         return ticker in self.markets
 
-    def is_timeframe(self, t):
-        return t in self.api.timeframes
+    def is_timeframe(self, timeframe):
+        return timeframe in self.api.timeframes
