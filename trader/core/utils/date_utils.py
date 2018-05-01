@@ -132,6 +132,13 @@ def timeframes_to_seconds(timeframe, timeframes=1):
     )
 
 
+@curry
+def add_timeframe_to_date(date, timeframe):
+    timeframe_seconds = timeframes_to_seconds(timeframe)
+    offset = datetime.timedelta(seconds=timeframe_seconds)
+    return date + offset
+
+
 def minutes_to_seconds(t):
     return t * 60
 

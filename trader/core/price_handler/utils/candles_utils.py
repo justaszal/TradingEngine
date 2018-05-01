@@ -1,4 +1,5 @@
 import pandas as pd
+from toolz import curry
 from core.event import BarEvent
 
 columns = {
@@ -11,6 +12,7 @@ columns = {
 }
 
 
+@curry
 def create_bar_event(candle, timeframe):
     return BarEvent(
         candle[columns['Timestamp']],

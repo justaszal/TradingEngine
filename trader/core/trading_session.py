@@ -1,6 +1,6 @@
 from core.price_handler.ccxt_historic import CCXTHistoricPriceHandler
 import asyncio
-import core.utils.date_utils
+import core.utils.date_utils as date_utils
 
 
 class TradingSession:
@@ -9,8 +9,8 @@ class TradingSession:
     carrying out either a backtest or live trading session.
     """
 
-    def __init__(self, exchange, tickers, events_queue, start_date, end_date,
-                 timeframe="1h", session_type="backtest",
+    def __init__(self, exchange, tickers, events_queue, start_date=None,
+                 end_date=None, timeframe="1h", session_type="backtest",
                  price_handler=None):
         """
         Args:
@@ -39,7 +39,7 @@ class TradingSession:
         Session configuration
         """
         self.heartbeat = (
-            date_utils.timeframes_to_seconds
+            date_utils.timeframes_to_seconds(self.timeframe)
             if self.session_type == "live"
             else None
         )

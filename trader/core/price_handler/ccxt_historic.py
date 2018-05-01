@@ -1,11 +1,8 @@
 import pandas as pd
-import queue
 import asyncio
 import core.price_handler.utils.candles_utils as candles_utils
 import core.utils.pandas_utils as pandas_utils
-from functools import reduce
 from toolz import compose
-from core.exchange.ccxt_exchange import CCXT
 from .base import AbstractPriceHandler
 
 
@@ -77,4 +74,4 @@ class CCXTHistoricPriceHandler(AbstractPriceHandler):
             bar_event = candles_utils.create_bar_event(candle, self.timeframe)
         finally:
             await self.events_queue.put(bar_event)
-            return bar_event
+            return True if bar_event else None
