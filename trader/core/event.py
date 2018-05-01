@@ -62,12 +62,12 @@ class BarEvent(Event):
         self.close = close
 
         self.volume = volume
-        self.interval = timeframe
+        self.timeframe = timeframe
 
     def __str__(self):
         return "BarEvent: [{} {} {} {} {} {} {}]".format(
             self.timestamp, self.open, self.high, self.low, self.close,
-            self.volume, self.interval
+            self.volume, self.timeframe
         )
 
 
