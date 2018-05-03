@@ -27,23 +27,23 @@ class CCXTHistoricPriceHandler(AbstractPriceHandler):
         super().__init__(tickers, exchange, events_queue, timeframe)
         self.start_date = start_date
         self.end_date = end_date
-        self.tickers_data = self.subscribe_tickers()
+        self.tickers_data = self.__subscribe_tickers()
         self.candles_stream = compose(self.__zip_candles_data_frame)(
             self.__merge_sort_tickers_data())
 
-    def subscribe_tickers(self):
+    def __subscribe_tickers(self):
         """Get historic data for each ticker in ticker array
 
         Returns:
             List: DataFrames with ohclv candles with timestamps and ticker
         """
-        candles_awaitables = map(self.get_candles_data_frame, self.tickers)
+        candles_awaitables = map(self.__get_candles_data_frame, self.tickers)
         tickers_data = compose(self.exchange.loop.run_until_complete,
                                asyncio.gather)(*candles_awaitables)
 
         return compose(dict, zip)(self.tickers, tickers_data)
 
-    async def get_candles_data_frame(self, ticker):
+    async def __get_candles_data_frame(self, ticker):
         # Produce add ticker function that accepts data frame parameter
         add_ticker = pandas_utils.add_ticker_to_data_frame(data=ticker)
         return compose(add_ticker, candles_utils.create_candles_data_frame)(

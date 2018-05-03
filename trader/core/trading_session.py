@@ -1,6 +1,12 @@
 from core.price_handler.ccxt_historic import CCXTHistoricPriceHandler
+from core.price_handler.ccxt_live import CCXTLivePriceHandler
+from core.price_handler.base import AbstractPriceHandler
+from toolz import first, compose
+from core.errors import (TradingSessionTypeError,
+                         PriceHandlerNotFoundError)
 import asyncio
 import core.utils.date_utils as date_utils
+import core.configuration as configuration
 
 
 class TradingSession:
@@ -40,17 +46,57 @@ class TradingSession:
         """
         self.heartbeat = (
             date_utils.timeframes_to_seconds(self.timeframe)
-            if self.session_type == "live"
+            if self.session_type == 'live'
             else None
         )
 
-        if self.price_handler is None and self.session_type == "backtest":
-            self.price_handler = CCXTHistoricPriceHandler(
-                self.tickers, self.exchange, self.events_queue,
-                self.timeframe, self.start_date, self.end_date
+        self.__set_price_handler(self.price_handler)
+
+    def __set_price_handler(self, price_handler):
+        price_handler_args = (
+            self.tickers, self.exchange, self.events_queue, self.timeframe,
+            self.start_date, self.end_date
+        ) if self.session_type == 'backtest' else (
+            self.tickers, self.exchange, self.events_queue, self.timeframe,
+            self.end_date
+        ) if self.session_type == 'live' else None
+
+        if price_handler_args is None:
+            raise TradingSessionTypeError(session_type=self.session_type)
+
+        if self.price_handler is None:
+            if self.session_type == 'backtest':
+                self.price_handler = CCXTHistoricPriceHandler(
+                    *price_handler_args)
+            elif self.session_type == 'live':
+                self.price_handler = CCXTLivePriceHandler(*price_handler_args)
+        elif isinstance(self.price_handler, str):
+            price_handler_class = self.__load_price_handler_class()
+            self.price_handler = price_handler_class(*price_handler_args)
+        elif not isinstance(self.price_handler, AbstractPriceHandler):
+            raise PriceHandlerNotFoundError(
+                price_handler=self.price_handler)
+
+    def __load_price_handler_class(self):
+        return compose(first, configuration.load_module_classes,
+                       self.__load_price_module
+                       )(self.price_handler)[1]
+
+    def __load_price_module(self, module_name):
+        price_handler_module = configuration.load_module(
+            '.' + module_name, 'core.price_handler'
+        )
+
+        if price_handler_module is None:
+            suffix = (self.session_type if self.session_type == 'live'
+                      else 'historic')
+            price_handler_module = configuration.load_module(
+                '.' + module_name + '_' + suffix, 'core.price_handler'
             )
 
-    async def stream_events(self):
+        return price_handler_module
+
+    async def __stream_events(self):
         while True:
             event = await self.price_handler.stream_next()
             """
@@ -62,7 +108,7 @@ class TradingSession:
 
             await asyncio.sleep(self.heartbeat or 0)
 
-    async def process_events(self):
+    async def __process_events(self):
         while True:
             try:
                 event = self.events_queue.get_nowait()
@@ -73,5 +119,5 @@ class TradingSession:
                     break
 
     def run_session(self):
-        tasks = asyncio.gather(self.stream_events(), self.process_events())
+        tasks = asyncio.gather(self.__stream_events(), self.__process_events())
         self.exchange.loop.run_until_complete(tasks)

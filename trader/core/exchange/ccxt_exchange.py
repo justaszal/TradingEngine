@@ -131,7 +131,7 @@ class CCXT(ExchangeAsync):
         candles = []
 
         try:
-            if api_params['limit'] is not None:
+            if 'limit' in api_params and api_params['limit'] is not None:
                 while api_params['limit'] > 0:
                     fetched_candles = await self.api.fetch_ohlcv(**api_params)
                     candles += fetched_candles

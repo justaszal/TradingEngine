@@ -9,3 +9,17 @@ class Error(Exception):
 
     __unicode__ = __str__
     __repr__ = __str__
+
+
+class PriceHandlerNotFoundError(Error):
+    msg = (
+        'Price handler {price_handler} could not be find in core.price_handler'
+        'directory and {price_handler} is not of type AbstractPriceHandler.'
+    )
+
+
+class TradingSessionTypeError(Error):
+    msg = (
+        'Trading session type can only be backtest or live however'
+        '{session_type} was passed.'
+    )

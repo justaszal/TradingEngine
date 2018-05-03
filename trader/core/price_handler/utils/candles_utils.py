@@ -26,5 +26,4 @@ def create_bar_event(candle, timeframe):
 
 
 def create_candles_data_frame(candles):
-    return pd.DataFrame.from_records(candles,
-                                     columns=columns.keys())
+    return pd.DataFrame.from_records(candles, columns=columns.keys())

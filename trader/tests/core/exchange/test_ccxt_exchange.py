@@ -1,29 +1,12 @@
 import pytest
 import datetime
-import asyncio
-import core.utils.date_utils as date_utils
+import tests.test_utils.common as test_utils
 from core.exchange.ccxt_exchange import CCXT
 from unittest.mock import Mock
-from toolz import curry, compose
-from random import randint
+from toolz import compose
 from functools import reduce
 from core.exchange.exchange_errors import (ExchangeNotFoundError,
                                            InvalidHistoryTimeframeError)
-
-
-@curry
-def append(arr, x):
-    arr.append(x)
-    return arr
-
-
-async def fetch_ohlcv(symbol, timeframe, since, limit=1000):
-    return reduce(
-        lambda data_set, ohlcv: append(
-            data_set,
-            [1, 1, 1, 1, 1]),
-        range(limit if limit < 1000 else 1000), []
-    )
 
 
 def days_generator_2018_01(*args):
@@ -36,7 +19,7 @@ def days_generator_2018_01(*args):
         List: datetime objects with date 2018-01-X
     """
     return reduce(
-        lambda days, day: append(
+        lambda days, day: test_utils.append(
             days,
             datetime.datetime(2018, 1, day)
         ),
@@ -45,24 +28,8 @@ def days_generator_2018_01(*args):
     )
 
 
-async def noop(*args):
-    await asyncio.sleep(0)
-
-
-@pytest.fixture(scope="module")
-def binance(request, markets):
-    CCXT = request.module.CCXT
-    exchange = CCXT('binance')
-    exchange.markets = markets['binance']
-    exchange.load_markets = Mock(side_effect=noop)
-    exchange.api.fetch_ohlcv = Mock(side_effect=fetch_ohlcv)
-
-    request.addfinalizer(lambda: exchange.close())
-    return exchange
-
-
 def setup_module(module):
-    CCXT.load_markets = Mock(side_effect=noop)
+    CCXT.load_markets = Mock(side_effect=test_utils.noop_async)
 
 
 class TestCCXTExchange():
