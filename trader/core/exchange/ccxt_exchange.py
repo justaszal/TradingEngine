@@ -2,7 +2,7 @@ import ccxt.async as ccxt
 import asyncio
 import core.utils.date_utils as date_utils
 import core.utils.filters as filters
-from .base import ExchangeAsync
+from .exchange import ExchangeAsync
 from ccxt import (NetworkError,
                   ExchangeError)
 from .exchange_errors import (ExchangeNotFoundError,
