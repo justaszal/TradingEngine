@@ -3,7 +3,7 @@ import asyncio
 import core.price_handler.utils.candles_utils as candles_utils
 import core.utils.pandas_utils as pandas_utils
 from toolz import compose
-from .base import AbstractPriceHandler
+from .abstract_price_handler import AbstractPriceHandler
 
 
 class CCXTHistoricPriceHandler(AbstractPriceHandler):

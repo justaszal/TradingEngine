@@ -1,6 +1,6 @@
 from core.price_handler.ccxt_historic import CCXTHistoricPriceHandler
 from core.price_handler.ccxt_live import CCXTLivePriceHandler
-from core.price_handler.base import AbstractPriceHandler
+from core.price_handler.abstract_price_handler import AbstractPriceHandler
 from toolz import first, compose
 from core.errors import (TradingSessionTypeError,
                          PriceHandlerNotFoundError)

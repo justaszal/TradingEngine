@@ -3,7 +3,7 @@ import core.price_handler.utils.candles_utils as candles_utils
 import core.utils.date_utils as date_utils
 import core.utils.functional as functional
 import datetime
-from .base import AbstractPriceHandler
+from .abstract_price_handler import AbstractPriceHandler
 from toolz import compose
 from core.event import BarEvent
 
