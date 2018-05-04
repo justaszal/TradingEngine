@@ -1,6 +1,7 @@
 import pytest
 import datetime
 import tests.test_utils.common as test_utils
+import core.utils.functional as functional
 from core.exchange.ccxt_exchange import CCXT
 from unittest.mock import Mock
 from toolz import compose
@@ -19,7 +20,7 @@ def days_generator_2018_01(*args):
         List: datetime objects with date 2018-01-X
     """
     return reduce(
-        lambda days, day: test_utils.append(
+        lambda days, day: functional.append(
             days,
             datetime.datetime(2018, 1, day)
         ),

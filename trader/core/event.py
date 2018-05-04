@@ -51,11 +51,12 @@ class TickEvent(Event):
 
 class BarEvent(Event):
 
-    def __init__(self, timestamp, open, high, low, close, volume, timeframe):
+    def __init__(self, ticker, timestamp, open, high, low, close, volume,
+                 timeframe):
         self.type = EventTypes.BAR
+        self.ticker = ticker
         self.timestamp = timestamp
 
-        # candlestick
         self.open = open
         self.high = high
         self.low = low
@@ -65,9 +66,9 @@ class BarEvent(Event):
         self.timeframe = timeframe
 
     def __str__(self):
-        return "BarEvent: [{} {} {} {} {} {} {}]".format(
-            self.timestamp, self.open, self.high, self.low, self.close,
-            self.volume, self.timeframe
+        return "BarEvent: [{} {} {} {} {} {} {} {}]".format(
+            self.ticker, self.timestamp, self.open, self.high, self.low,
+            self.close, self.volume, self.timeframe
         )
 
 

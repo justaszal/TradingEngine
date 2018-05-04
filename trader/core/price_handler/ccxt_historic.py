@@ -29,7 +29,7 @@ class CCXTHistoricPriceHandler(AbstractPriceHandler):
         self.end_date = end_date
         self.tickers_data = self.__subscribe_tickers()
         self.candles_stream = compose(self.__zip_candles_data_frame)(
-            self.__merge_sort_tickers_data())
+            self.__sort_tickers_data())
 
     def __subscribe_tickers(self):
         """Get historic data for each ticker in ticker array
@@ -51,7 +51,7 @@ class CCXTHistoricPriceHandler(AbstractPriceHandler):
                 ticker, self.timeframe, self.start_date, self.end_date
             ))
 
-    def __merge_sort_tickers_data(self):
+    def __sort_tickers_data(self):
         """
         Sorting dataframes dictionary by timestamp
         """
@@ -60,7 +60,9 @@ class CCXTHistoricPriceHandler(AbstractPriceHandler):
         )
 
     def __zip_candles_data_frame(self, df):
-        return compose(zip)(*map(df.get, candles_utils.columns.keys()))
+        return compose(zip)(
+            *map(df.get, candles_utils.columns_with_ticker.keys())
+        )
 
     async def stream_next(self):
         """

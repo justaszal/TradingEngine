@@ -11,16 +11,22 @@ columns = {
     'Volume': 5
 }
 
+columns_with_ticker = {
+    **columns,
+    'Ticker': 6
+}
+
 
 @curry
 def create_bar_event(candle, timeframe):
     return BarEvent(
-        candle[columns['Timestamp']],
-        candle[columns['High']],
-        candle[columns['Open']],
-        candle[columns['Low']],
-        candle[columns['Close']],
-        candle[columns['Volume']],
+        candle[columns_with_ticker['Ticker']],
+        candle[columns_with_ticker['Timestamp']],
+        candle[columns_with_ticker['High']],
+        candle[columns_with_ticker['Open']],
+        candle[columns_with_ticker['Low']],
+        candle[columns_with_ticker['Close']],
+        candle[columns_with_ticker['Volume']],
         timeframe
     )
 

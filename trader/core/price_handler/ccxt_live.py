@@ -1,6 +1,7 @@
 import asyncio
 import core.price_handler.utils.candles_utils as candles_utils
 import core.utils.date_utils as date_utils
+import core.utils.functional as functional
 import datetime
 from .base import AbstractPriceHandler
 from toolz import compose
@@ -20,7 +21,8 @@ class CCXTLivePriceHandler(AbstractPriceHandler):
         return now_dt > self.end_date if self.end_date else False
 
     async def __stream_bar_event(self, ticker):
-        return compose(self.create_bar_event)(
+        append_ticker = functional.append(x=ticker)
+        return compose(self.create_bar_event, append_ticker)(
             *await self.exchange.get_candles(
                 ticker, self.timeframe, limit=1
             )

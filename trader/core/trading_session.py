@@ -112,6 +112,7 @@ class TradingSession:
         while True:
             try:
                 event = self.events_queue.get_nowait()
+                print(event)
             except asyncio.QueueEmpty:
                 await asyncio.sleep(1 if self.heartbeat else 0)
             else:
