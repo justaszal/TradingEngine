@@ -4,6 +4,11 @@ from toolz import curry
 from functools import reduce
 
 
+@curry
+def is_object_type_name(obj, name):
+    return type(obj).__name__ == name
+
+
 async def fetch_ohlcv(symbol, timeframe, since=None, limit=1000):
     return reduce(
         lambda data_set, ohlcv: functional.append(

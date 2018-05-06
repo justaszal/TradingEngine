@@ -1,7 +1,8 @@
 from enum import Enum
 from abc import ABC
 
-EventTypes = Enum('event_types', 'TICK BAR SIGNAL ORDER FILL')
+EventType = Enum('event_types', 'TICK BAR SIGNAL ORDER FILL')
+SignalType = Enum('signal_types', 'long short')
 
 
 class Event(ABC):
@@ -33,7 +34,7 @@ class TickEvent(Event):
         bid - The best bid price at the time of the tick.
         ask - The best ask price at the time of the tick.
         """
-        self.type = EventTypes.TICK
+        self.type = EventType.TICK
         self.ticker = ticker
         self.time = time
         self.bid = bid
@@ -53,7 +54,7 @@ class BarEvent(Event):
 
     def __init__(self, ticker, timestamp, open, high, low, close, volume,
                  timeframe):
-        self.type = EventTypes.BAR
+        self.type = EventType.BAR
         self.ticker = ticker
         self.timestamp = timestamp
 
@@ -78,28 +79,23 @@ class SignalEvent(Event):
     This is received by a Portfolio object and acted upon.
     """
 
-    def __init__(self, ticker, action, suggested_quantity=None):
+    def __init__(self, ticker, action):
         """
         Initialises the SignalEvent.
 
         Parameters:
-        ticker - The ticker symbol, e.g. 'GOOG'.
-        action - 'BOT' (for long) or 'SLD' (for short).
-        suggested_quantity - Optional positively valued integer
-            representing a suggested absolute quantity of units
-            of an asset to transact in, which is used by the
-            PositionSizer and RiskManager.
+        ticker - The ticker symbol, e.g. 'BTC/USD'.
+        action - 'long' or 'short'.
         """
-        self.type = EventTypes.SIGNAL
+        self.type = EventType.SIGNAL
         self.ticker = ticker
-        self.action = action
-        self.suggested_quantity = suggested_quantity
+        self.action = SignalType[action]
 
 
 class OrderEvent(Event):
     """
     Handles the event of sending an Order to an execution system.
-    The order contains a ticker (e.g. GOOG), action (BOT or SLD)
+    The order contains a ticker (e.g. ETH/USD), action (long or short)
     and quantity.
     """
 
@@ -108,11 +104,11 @@ class OrderEvent(Event):
         Initialises the OrderEvent.
 
         Parameters:
-        ticker - The ticker symbol, e.g. 'GOOG'.
-        action - 'BOT' (for long) or 'SLD' (for short).
+        ticker - The ticker symbol, e.g. 'ETH/EUR'.
+        action - 'long' or 'short'.
         quantity - The quantity of shares to transact.
         """
-        self.type = EventTypes.ORDER
+        self.type = EventType.ORDER
         self.ticker = ticker
         self.action = action
         self.quantity = quantity
