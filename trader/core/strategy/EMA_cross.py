@@ -43,7 +43,7 @@ class EMACrossStrategy(Strategy):
             }
         ), self.tickers, {})
 
-    def __get_signal(self, ticker, timestamp, ticker_storage):
+    async def __get_signal(self, ticker, timestamp, ticker_storage):
         # Calculate the exponential moving averages
         bars = ticker_storage['bars']
         window_diff = self.long_window - self.short_window
@@ -56,15 +56,15 @@ class EMACrossStrategy(Strategy):
         if short_ema > long_ema and not ticker_storage['is_bought']:
             print("LONG %s: %s" % (ticker, timestamp))
             signal = SignalEvent(ticker, "long")
-            self.events_queue.put(signal)
+            await self.events_queue.put(signal)
             ticker_storage['is_bought'] = True
         elif short_ema < long_ema and ticker_storage['is_bought']:
             print("SHORT %s: %s" % (ticker, timestamp))
             signal = SignalEvent(ticker, "short")
-            self.events_queue.put(signal)
+            await self.events_queue.put(signal)
             ticker_storage['is_bought'] = False
 
-    def calculate_signal(self, event):
+    async def calculate_signal(self, event):
         if (
             event.type == EventType.BAR and
             event.ticker in self.tickers_storage
@@ -78,7 +78,7 @@ class EMACrossStrategy(Strategy):
                 ticker_storage['index'] += 1
 
                 if ticker_storage['index'] == self.long_window:
-                    self.__get_signal(
+                    await self.__get_signal(
                         event.ticker, event.timestamp, ticker_storage)
             # Array is full, so remove oldest value, add new and get signal
             else:
@@ -86,5 +86,5 @@ class EMACrossStrategy(Strategy):
                 numpy_utils.shift(ticker_storage['bars'], -1)
                 ticker_storage['bars'][
                     ticker_storage['index'] - 1] = event.close
-                self.__get_signal(
+                await self.__get_signal(
                     event.ticker, event.timestamp, ticker_storage)
