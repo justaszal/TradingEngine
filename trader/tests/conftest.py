@@ -6,11 +6,13 @@ from unittest.mock import Mock
 from core.exchange.ccxt_exchange import CCXT
 
 
+CCXT.load_markets = Mock(side_effect=test_utils.noop_async)
+
+
 @pytest.fixture(scope='session')
 def binance(request, markets):
     exchange = CCXT('binance')
     exchange.markets = markets['binance']
-    exchange.load_markets = Mock(side_effect=test_utils.noop_async)
     exchange.api.fetch_ohlcv = Mock(side_effect=test_utils.fetch_ohlcv)
     request.addfinalizer(lambda: exchange.close())
     return exchange

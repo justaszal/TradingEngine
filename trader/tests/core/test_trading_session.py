@@ -26,10 +26,6 @@ class TestTradingSession:
     def test_price_handler_configuration(
         self, price_handler, session_type, expected_price_handler, binance
     ):
-        """
-        TODO: mock CCXTHistoricPriceHandler, CCXTLivePriceHandler and
-        __load_price_handler_class() and expose mock stream_next method
-        """
         session = TradingSession(
             binance, ['BTC/USDT'], asyncio.Queue(), session_type=session_type,
             price_handler=price_handler
