@@ -1,6 +1,6 @@
 from core.price_handler.ccxt_historic import CCXTHistoricPriceHandler
 from core.price_handler.ccxt_live import CCXTLivePriceHandler
-from core.price_handler.abstract_price_handler import AbstractPriceHandler
+from core.price_handler.price_handler import PriceHandler
 from toolz import first, compose
 from core.errors import (TradingSessionTypeError,
                          PriceHandlerNotFoundError)
@@ -73,7 +73,7 @@ class TradingSession:
         elif isinstance(self.price_handler, str):
             price_handler_class = self.__load_price_handler_class()
             self.price_handler = price_handler_class(*price_handler_args)
-        elif not isinstance(self.price_handler, AbstractPriceHandler):
+        elif not isinstance(self.price_handler, PriceHandler):
             raise PriceHandlerNotFoundError(
                 price_handler=self.price_handler)
 

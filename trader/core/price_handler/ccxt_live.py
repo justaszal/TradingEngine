@@ -3,12 +3,12 @@ import core.price_handler.utils.candles_utils as candles_utils
 import core.utils.date_utils as date_utils
 import core.utils.functional as functional
 import datetime
-from .abstract_price_handler import AbstractPriceHandler
+from .price_handler import PriceHandler
 from toolz import compose
 from core.event import BarEvent
 
 
-class CCXTLivePriceHandler(AbstractPriceHandler):
+class CCXTLivePriceHandler(PriceHandler):
 
     def __init__(self, tickers, exchange, events_queue, timeframe='1m',
                  end_date=None):

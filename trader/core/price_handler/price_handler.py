@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractPriceHandler(ABC):
+class PriceHandler(ABC):
     """
     PriceHandler is a base class providing an interface for
     all subsequent (inherited) data handlers (both live and historic).

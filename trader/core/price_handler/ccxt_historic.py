@@ -3,10 +3,10 @@ import asyncio
 import core.price_handler.utils.candles_utils as candles_utils
 import core.utils.pandas_utils as pandas_utils
 from toolz import compose
-from .abstract_price_handler import AbstractPriceHandler
+from .price_handler import PriceHandler
 
 
-class CCXTHistoricPriceHandler(AbstractPriceHandler):
+class CCXTHistoricPriceHandler(PriceHandler):
     """
     CCXTHistoricKlinesPriceHandler is designed to fetch historic price then
     produce a dataframe of cryptocurrency exchange Open-High-Low-Close-Volume
