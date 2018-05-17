@@ -4,5 +4,6 @@ pytz
 fn
 cytoolz
 pytest
-#python linter
 pycodestyle
+TA-Lib
+aiohttp

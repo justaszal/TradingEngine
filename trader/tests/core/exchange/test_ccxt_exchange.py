@@ -1,5 +1,6 @@
 import pytest
 import datetime
+import asyncio
 import tests.test_utils.common as test_utils
 import core.utils.functional as functional
 from core.exchange.ccxt_exchange import CCXT
@@ -29,6 +30,9 @@ def days_generator_2018_01(*args):
     )
 
 
+loop = asyncio.get_event_loop()
+
+
 def setup_module(module):
     CCXT.load_markets = Mock(side_effect=test_utils.noop_async)
 
@@ -37,7 +41,7 @@ class TestCCXTExchange():
 
     def test_CCXT_ExchangeNotFoundError(self):
         with pytest.raises(ExchangeNotFoundError):
-            CCXT('non-existing exchange name')
+            loop.run_until_complete(CCXT.create('non-existing exchange name'))
 
     @pytest.mark.parametrize('timeframe, two_sequential_days, limit,\
                               expected_limit',
@@ -72,8 +76,8 @@ class TestCCXTExchange():
         ) == expected_since_date
 
     def test_CCXT_constructor_loads_markets(self):
-        binance = CCXT('binance')
-        binance.close()
+        binance = loop.run_until_complete(CCXT.create('binance'))
+        loop.run_until_complete(binance.close())
         assert binance.load_markets.called
 
     @pytest.mark.parametrize('symbol, timeframe, dates, expected_candles',

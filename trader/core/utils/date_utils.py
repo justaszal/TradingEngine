@@ -89,6 +89,12 @@ def timestamp_strip_ms(timestamp):
     return timestamp if now_timestamp < timestamp else timestamp / 1000
 
 
+def timestamp_short(timestamp):
+    now_timestamp = datetime.datetime.now().timestamp()
+
+    return timestamp if now_timestamp > timestamp else timestamp / 1000
+
+
 def date_range(start_date, end_date, freq, periods=None):
     return pd.date_range(
         start_date,

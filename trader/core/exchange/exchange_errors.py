@@ -23,6 +23,12 @@ class InvalidTickerError(Error):
 
 class ExchangeRequestError(Error):
     msg = (
-        'Request failed'
         '{e}'
+        'Possible reasons:'
+        'No network connecton'
+        'Endpoint is switched off by the exchange'
+        'Symbol not found on the exchange'
+        'Required parameter is missing'
+        'The format of parameters is incorrect'
+        'An exchange replies with an unclear answer'
     )

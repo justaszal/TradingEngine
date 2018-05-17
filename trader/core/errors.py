@@ -14,7 +14,7 @@ class Error(Exception):
 class PriceHandlerNotFoundError(Error):
     msg = (
         'Price handler {price_handler} could not be find in core.price_handler'
-        'directory and {price_handler} is not of type PriceHandler.'
+        'directory and {price_handler} is not of type AbstractPriceHandler.'
     )
 
 

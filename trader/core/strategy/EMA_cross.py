@@ -51,16 +51,18 @@ class EMACrossStrategy(Strategy):
             bars[window_diff:], timeperiod=self.short_window
         )[-1]
         long_ema = talib.EMA(bars, timeperiod=self.long_window)[-1]
-
+        # print('short EMA {}'.format(short_ema))
+        # print('long EMA {}'.format(long_ema))
         # Trading signals based on moving average cross
         if short_ema > long_ema and not ticker_storage['is_bought']:
-            print("LONG %s: %s" % (ticker, timestamp))
-            signal = SignalEvent(ticker, "long")
+            print("LONG %s: %s, %s" % (ticker, timestamp, bars[-1]))
+            signal = SignalEvent(timestamp, ticker, "long", "limit", bars[-1])
             await self.events_queue.put(signal)
             ticker_storage['is_bought'] = True
         elif short_ema < long_ema and ticker_storage['is_bought']:
-            print("SHORT %s: %s" % (ticker, timestamp))
-            signal = SignalEvent(ticker, "short")
+            print("SHORT %s: %s, %s" % (ticker, timestamp, bars[-1]))
+            signal = SignalEvent(
+                timestamp, ticker, "short", "limit", bars[-1])
             await self.events_queue.put(signal)
             ticker_storage['is_bought'] = False
 

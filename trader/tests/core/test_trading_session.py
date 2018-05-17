@@ -1,16 +1,16 @@
 import pytest
 import asyncio
-import core.trading_session as trading_session
 import core.errors as errors
 from core.trading_session import TradingSession
-from unittest.mock import Mock
-from core.trading_session import configuration
 from core.price_handler.ccxt_live import CCXTLivePriceHandler
 from core.price_handler.ccxt_historic import CCXTHistoricPriceHandler
+from core.strategy.EMA_cross import EMACrossStrategy
 
 
-def load_module(path, package=None):
-    return None if path == '.ccxt' else path.replace('.', '')
+loop = asyncio.get_event_loop()
+queue = asyncio.Queue()
+tickers = ['BTC/USDT']
+ema_strategy = EMACrossStrategy(tickers, queue)
 
 
 class TestTradingSession:
@@ -26,10 +26,10 @@ class TestTradingSession:
     def test_price_handler_configuration(
         self, price_handler, session_type, expected_price_handler, binance
     ):
-        session = TradingSession(
-            binance, ['BTC/USDT'], asyncio.Queue(), session_type=session_type,
-            price_handler=price_handler
-        )
+        session = loop.run_until_complete(TradingSession.create(
+            binance, tickers, queue, ema_strategy, 1000,
+            session_type=session_type, price_handler=price_handler
+        ))
         assert type(session.price_handler) == expected_price_handler
 
     @pytest.mark.parametrize('session_type, price_handler, expected_error', [
@@ -40,6 +40,7 @@ class TestTradingSession:
                                                price_handler, expected_error,
                                                binance):
         with pytest.raises(expected_error):
-            TradingSession(binance, ['BTC/USDT'], asyncio.Queue(),
-                           session_type=session_type,
-                           price_handler=price_handler)
+            loop.run_until_complete(TradingSession.create(
+                binance, tickers, queue, ema_strategy, 1000,
+                session_type=session_type, price_handler=price_handler
+            ))

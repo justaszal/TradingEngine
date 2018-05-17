@@ -59,6 +59,7 @@ class TestDateUtils():
     @pytest.mark.parametrize('timeframe, timeframes, seconds', [
         ('15m', 10000, 15 * 60 * 10000),
         ('15T', 1, 15 * 60),
+        ('12h', 1, 60 * 60 * 12),
         ('1h', 2, 60 * 60 * 2),
         ('1d', 2, 60 * 60 * 24 * 2),
         ('1s', 1, None)
@@ -66,3 +67,16 @@ class TestDateUtils():
     def test_timeframes_to_seconds(self, timeframe, timeframes, seconds):
         assert date_utils.timeframes_to_seconds(timeframe,
                                                 timeframes) == seconds
+
+    @pytest.mark.parametrize('date, timeframe, expected', [
+        (
+            datetime.datetime(2018, 5, 14, 00, 50), '12h',
+            datetime.datetime(2018, 5, 14, 12, 50)
+        ),
+        (
+            datetime.datetime(2018, 5, 14, 00, 50, 1, 2), '1m',
+            datetime.datetime(2018, 5, 14, 12, 50, 2, 2)
+        )
+    ])
+    def test_add_timeframe_to_date(self, date, timeframe, expected):
+        assert date_utils.add_timeframe_to_date(date, timeframe)

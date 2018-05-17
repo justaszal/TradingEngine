@@ -9,20 +9,21 @@ from .exchange_errors import (ExchangeNotFoundError,
                               InvalidHistoryTimeframeError,
                               InvalidTickerError,
                               ExchangeRequestError)
-from toolz import pipe, compose, first
+from toolz import compose, first, curry
 
 
 class CCXT(ExchangeAsync):
 
-    def __init__(self, name):
+    @classmethod
+    async def create(cls, name):
         try:
+            self = CCXT()
             self.api = getattr(ccxt, name)({
                 'enableRateLimit': True
             })
-            self.markets = compose(
-                self.loop.run_until_complete
-            )(self.load_markets())
+            self.markets = await self.load_markets()
             self.name = name
+            return self
         except Exception:
             raise ExchangeNotFoundError(exhange_name=name)
 
@@ -35,8 +36,8 @@ class CCXT(ExchangeAsync):
         """
         return await self.api.load_markets()
 
-    def close(self):
-        compose(self.loop.run_until_complete)(self.api.close())
+    async def close(self):
+        await self.api.close()
 
     def get_klines(self, ticker, timeframe, params={}):
         """Gets candlestick history (binance)
@@ -110,16 +111,17 @@ class CCXT(ExchangeAsync):
     async def fetch_ticker(self, ticker):
         return await self.api.fetch_ticker(ticker)
 
-    async def get_candles(self, ticker, timeframe='1m', start_dt=None,
-                          end_dt=None, limit=None, params={}):
+    @curry
+    async def get_candles(self, ticker, timeframe='1m', start_date=None,
+                          end_date=None, limit=None, params={}):
         self.verify_api_attribute('fetch_ohlcv')
         self.verify_ticker(ticker)
         self.verify_timeframe(timeframe)
 
-        params['since'] = self.get_since_date(timeframe, start_dt, end_dt,
+        params['since'] = self.get_since_date(timeframe, start_date, end_date,
                                               limit)
-        params['limit'] = self.get_fech_ohlcv_limit(timeframe, start_dt,
-                                                    end_dt, limit)
+        params['limit'] = self.get_fech_ohlcv_limit(timeframe, start_date,
+                                                    end_date, limit)
         api_params = {
             **{
                 'symbol': ticker,
@@ -167,3 +169,18 @@ class CCXT(ExchangeAsync):
 
     def is_timeframe(self, timeframe):
         return timeframe in self.api.timeframes
+
+    def get_fee(self):
+        fee = {
+            'taker': 0.0015,
+            'maker': 0.0030
+        }
+
+        if self.name == 'kraken':
+            fee['taker'] = 0.0016
+            fee['maker'] = 0.0032
+        elif self.name == 'binance':
+            fee['taker'] = 0.0010
+            fee['maker'] = 0.0020
+
+        return fee

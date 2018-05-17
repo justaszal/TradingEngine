@@ -7,14 +7,15 @@ from core.exchange.ccxt_exchange import CCXT
 
 
 CCXT.load_markets = Mock(side_effect=test_utils.noop_async)
+loop = asyncio.get_event_loop()
 
 
 @pytest.fixture(scope='session')
 def binance(request, markets):
-    exchange = CCXT('binance')
+    exchange = loop.run_until_complete(CCXT.create('binance'))
     exchange.markets = markets['binance']
     exchange.api.fetch_ohlcv = Mock(side_effect=test_utils.fetch_ohlcv)
-    request.addfinalizer(lambda: exchange.close())
+    request.addfinalizer(lambda: loop.run_until_complete(exchange.close()))
     return exchange
 
 
