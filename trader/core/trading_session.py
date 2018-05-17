@@ -7,7 +7,7 @@ from core.risk_manager.portfolio_percentage_risk_manager\
     import PortfolioPercentageRiskManager
 from core.event import EventType
 from core.portfolio.portfolio_handler import PortfolioHandler
-from toolz import first, compose
+from toolz import compose
 from core.execution_handler.ccxt_simulated import CCXTSimulatedExecutionHandler
 import asyncio
 import core.utils.date_utils as date_utils
@@ -94,7 +94,8 @@ class TradingSession:
             elif self.session_type == 'live':
                 self.price_handler = CCXTLivePriceHandler(*price_handler_args)
         elif isinstance(self.price_handler, str):
-            price_handler_class = self.__load_price_handler_class()
+            price_handler_class = configuration.load_price_handler_class(
+                self.price_handler, self.session_type)
             if hasattr(price_handler_class, 'create'):
                 self.price_handler = await price_handler_class.create(
                     *price_handler_args)
@@ -103,25 +104,6 @@ class TradingSession:
         else:
             raise PriceHandlerNotFoundError(
                 price_handler=self.price_handler)
-
-    def __load_price_handler_class(self):
-        return compose(first, configuration.load_module_classes,
-                       self.__load_price_module
-                       )(self.price_handler)[1]
-
-    def __load_price_module(self, module_name):
-        price_handler_module = configuration.load_module(
-            '.' + module_name, 'core.price_handler'
-        )
-
-        if price_handler_module is None:
-            suffix = (self.session_type if self.session_type == 'live'
-                      else 'historic')
-            price_handler_module = configuration.load_module(
-                '.' + module_name + '_' + suffix, 'core.price_handler'
-            )
-
-        return price_handler_module
 
     async def __stream_events(self):
         while True:
