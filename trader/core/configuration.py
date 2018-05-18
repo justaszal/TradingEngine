@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import pkgutil
 from toolz import compose, curry, first
 
 
@@ -43,3 +44,27 @@ def load_price_module(module_name, session_type):
         )
 
     return price_handler_module
+
+
+def get_package_modules(package, ignore=None):
+    modules = []
+
+    for importer, modname, ispackage in pkgutil.iter_modules(package.__path__):
+        if modname != ignore and not ispackage:
+            modules.append(modname)
+
+    return modules
+
+
+def get_packages_modules(packages, ignore=False):
+    modules = {}
+
+    for package in packages:
+        package_name = package.__name__.split('.')[-1] if ignore else None
+        modules[package.__name__] = get_package_modules(package, package_name)
+
+    return modules
+
+
+def import_core_package(package):
+    return importlib.import_module('core.' + package)
