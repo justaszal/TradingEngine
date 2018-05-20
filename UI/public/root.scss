@@ -1,0 +1,13 @@
+@import './styles/__variables';
+@import 'vendors/materialize-src/sass/materialize';
+
+.row .col {
+  padding: 0;
+}
+
+html {
+  min-height: 100%;
+}
+body {
+  min-height: 100%;
+}

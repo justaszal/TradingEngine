@@ -1,0 +1,10 @@
+{
+    "extends": "airbnb-base",
+    "rules": {
+        "no-unused-vars": ["error", {
+            "varsIgnorePattern": "^style$"
+        }],
+        "class-methods-use-this": 0,
+        "function-paren-newline": 0
+    }
+}

@@ -1,0 +1,10 @@
+<div class="row">
+    <div class="col s12">
+        <ul class="tabs">
+            <li class="tab col s6"><a  ng-class="{'active': $ctrl.$state.is('home.backtest')}"
+              ng-click="$ctrl.route('home.backtest')">Backtesting</a></li>
+            <li class="tab col s6"><a ng-class="{'active': $ctrl.$state.is('home.live-trade')}"
+              ng-click="$ctrl.route('home.live-trade')">Live trading</a></li>
+        </ul>
+    </div>
+</div>
