@@ -1,4 +1,5 @@
 ccxt
+numpy
 pandas
 pytz
 fn
@@ -7,3 +8,5 @@ pytest
 pycodestyle
 TA-Lib
 aiohttp
+aiohttp_cors
+websockets

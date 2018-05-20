@@ -31,6 +31,80 @@ import websockets
 import core.strategy as strategy
 import pkgutil
 import core.configuration as configuration
+import aiohttp_cors
+import ccxt.async as ccxt
+
+# timeframes
+# symbols
+# currencies
+# name
+
+# supported_exchanges = ['binance', 'gdax', 'kraken', 'poloniex']
+supported_exchanges = ['binance', 'gdax']
+# supported_coins = ['BTC', 'ETH', 'BCH', 'LTC', 'USDT', 'USD', 'EUR']
+
+
+async def get_exchanges(request):
+    # print(request.query)
+    # if 'test' in request.query:
+    #     print(request.query['test'])
+    #     print('works!!!')
+    return web.json_response(supported_exchanges)
+
+
+async def load_exchange(request):
+    if 'name' in request.query:
+        return web.json_response(CCXT.load_market_data(request.name),
+                                 dumps=JSONEncoder().default)
+
+
+def get_currencies(symbols):
+    currencies = {}
+    base_currencies = {}
+
+    for symbol in symbols:
+        coins = symbol.split('/')
+
+        if coins and len(coins) == 2:
+            if coins[0] not in currencies:
+                currencies[coins[0]] = []
+            if coins[1] not in currencies:
+                currencies[coins[1]] = []
+
+            currencies[coins[0]].append(coins[1])
+            currencies[coins[1]].append(coins[0])
+            base_currencies[coins[1]] = True
+
+    return {
+        'currencies': currencies,
+        'base_currencies': compose(list)(base_currencies.keys())
+    }
+
+
+async def get_market(request):
+    algorithms = configuration.get_algorithms()
+    exchanges_data = {}
+
+    for exchange in supported_exchanges:
+        exchanges_data[exchange] = await CCXT.load_market_data(exchange)
+
+        if exchange in exchanges_data:
+            symbols = exchanges_data[exchange]['symbols']
+            exchanges_data[exchange]['currencies'] = get_currencies(symbols)
+    exchange = exchanges_data[supported_exchanges[0]]
+    # if 'name' in request.query:
+    #     exchange = await CCXT.load_market_data(request.name)
+    # else:
+    #     print('on binance')
+    #     exchange = await CCXT.load_market_data('binance')
+
+    return web.json_response({
+        "exchanges_data": exchanges_data,
+        "exchanges": compose(list)(exchanges_data.keys()),
+        "algorithms": algorithms
+    },
+        dumps=JSONEncoder().default
+    )
 
 
 def event_processor(event):
@@ -62,7 +136,7 @@ async def backtest(request):
     return web.json_response(report, dumps=JSONEncoder().default)
 
 
-async def run_session(request):
+async def live_session(request):
     print(request)
     # tickers = ['BTC/USD', 'ETH/USD']
     tickers = ['BTC/USDT', 'ETH/USDT']
@@ -85,11 +159,8 @@ async def run_session(request):
     return web.json_response(report, dumps=JSONEncoder().default)
 
 
-async def algorithms(request):
-    strategy_package = configuration.import_core_package('strategy')
-    risk_manager_package = configuration.import_core_package('risk_manager')
-    modules = configuration.get_packages_modules(
-        [strategy_package, risk_manager_package], True)
+async def get_algorithms(request):
+    modules = configuration.get_algorithms()
     return web.json_response(modules)
 
 
@@ -133,11 +204,33 @@ async def echo(websocket, path):
         await websocket.send(message)
 
 
+# Configure default CORS settings.
+def setup_cors(app):
+    cors = aiohttp_cors.setup(app, defaults={
+        "*": aiohttp_cors.ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*",
+        )
+    })
+
+    for route in list(app.router.routes()):
+        cors.add(route)
+
+    return cors
+
+
 def start_server(args):
     app = web.Application()
     app.router.add_get('/backtest', backtest)
-    app.router.add_get('/run_session', run_session)
-    app.router.add_get('/algorithms', algorithms)
+    app.router.add_get('/live_session', live_session)
+    app.router.add_get('/get_algorithms', get_algorithms)
+    app.router.add_get('/get_exchanges', get_exchanges)
+    app.router.add_get('/load_exchange', load_exchange)
+    app.router.add_get('/get_market', get_market)
+    # Configure CORS on all routes.
+    setup_cors(app)
+
     # app.router.add_get('/ws', websocket_handler)
     # app.router.add_get('/ws_client', websocket_handler)
     # app.on_startup.append(init)

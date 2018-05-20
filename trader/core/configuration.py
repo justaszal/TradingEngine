@@ -68,3 +68,12 @@ def get_packages_modules(packages, ignore=False):
 
 def import_core_package(package):
     return importlib.import_module('core.' + package)
+
+
+def get_algorithms():
+    strategy_package = import_core_package('strategy')
+    risk_manager_package = import_core_package('risk_manager')
+    modules = get_packages_modules([strategy_package, risk_manager_package],
+                                   True)
+
+    return modules

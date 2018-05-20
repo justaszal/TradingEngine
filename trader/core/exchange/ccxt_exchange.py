@@ -27,6 +27,29 @@ class CCXT(ExchangeAsync):
         except Exception:
             raise ExchangeNotFoundError(exhange_name=name)
 
+    @staticmethod
+    async def load_market_data(name):
+        market_data = None
+
+        try:
+            exchange = getattr(ccxt, name)()
+            await exchange.load_markets()
+            timeframes = exchange.timeframes
+            symbols = exchange.symbols
+            await exchange.close()
+
+            market_data = {
+                'name': name,
+                'timeframes': timeframes,
+                'symbols': symbols
+            }
+        except Exception:
+            market_data = None
+            print('Exchange name: {} have not been found'.format(name))
+            raise ExchangeNotFoundError(exhange_name=name)
+        finally:
+            return market_data
+
     async def load_markets(self):
         """
         If you forget to load markets the ccxt library will do that

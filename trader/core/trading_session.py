@@ -155,6 +155,7 @@ class TradingSession:
                              self.__process_events(event_processor))
 
         print("Run session finished")
+        # TODO move to a function
         portfolio_report = self.portfolio_handler.get_portfolio_report()
 
         # Set session start and end dates
@@ -177,4 +178,10 @@ class TradingSession:
             if timestamp:
                 portfolio_report['end_date'] = timestamp
 
+        tickers_data = self.price_handler.tickers_data
+
+        # for ticker, data in tickers_data.items():
+        #     tickers_data[ticker] = data.to_json()
+
+        portfolio_report['tickers_data'] = tickers_data
         return portfolio_report
