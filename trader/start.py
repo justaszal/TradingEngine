@@ -45,14 +45,10 @@ supported_exchanges = ['binance', 'gdax']
 
 
 async def get_exchanges(request):
-    # print(request.query)
-    # if 'test' in request.query:
-    #     print(request.query['test'])
-    #     print('works!!!')
     return web.json_response(supported_exchanges)
 
 
-async def load_exchange(request):
+async def get_exchange(request):
     if 'name' in request.query:
         return web.json_response(CCXT.load_market_data(request.name),
                                  dumps=JSONEncoder().default)
@@ -112,8 +108,6 @@ def event_processor(event):
 
 
 async def backtest(request):
-    print(request)
-    # tickers = ['BTC/USD', 'ETH/USD']
     tickers = ['BTC/USDT', 'ETH/USDT']
 
     loop = asyncio.get_event_loop()
@@ -137,8 +131,6 @@ async def backtest(request):
 
 
 async def live_session(request):
-    print(request)
-    # tickers = ['BTC/USD', 'ETH/USD']
     tickers = ['BTC/USDT', 'ETH/USDT']
 
     loop = asyncio.get_event_loop()
@@ -226,17 +218,9 @@ def start_server(args):
     app.router.add_get('/live_session', live_session)
     app.router.add_get('/get_algorithms', get_algorithms)
     app.router.add_get('/get_exchanges', get_exchanges)
-    app.router.add_get('/load_exchange', load_exchange)
+    app.router.add_get('/get_exchange', get_exchange)
     app.router.add_get('/get_market', get_market)
     # Configure CORS on all routes.
     setup_cors(app)
 
-    # app.router.add_get('/ws', websocket_handler)
-    # app.router.add_get('/ws_client', websocket_handler)
-    # app.on_startup.append(init)
-
-    # web.run_app(app)
-    # asyncio.get_event_loop().run_until_complete(
-    #     websockets.serve(echo, '0.0.0.0', 8080))
-    # asyncio.get_event_loop().run_forever()
     return app
