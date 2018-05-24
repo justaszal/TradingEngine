@@ -1,4 +1,3 @@
-// import servicesRegistry from 'trading-session.module';
 export default class tradingSessionService {
   constructor($http, servicesRegistry) {
     this.$http = $http;
@@ -93,7 +92,29 @@ export default class tradingSessionService {
         ]);
       });
     });
-
     return candlesData;
+  }
+
+  getExchanges() {
+    return this.$http({
+      method: 'GET',
+      url: `http://${this.servicesRegistry.trader}/get_exchanges`,
+      cache: true,
+    });
+  }
+
+  loadExchange(name) {
+    return name;
+  }
+
+  getMarket(name = null) {
+    return this.$http({
+      method: 'GET',
+      url: `http://${this.servicesRegistry.trader}/get_market`,
+      cache: true,
+      params: {
+        name,
+      },
+    });
   }
 }

@@ -1,0 +1,106 @@
+<form name="session-configuration" ng-if="$ctrl.marketData && $ctrl.marketData.exchanges_data">
+    <div class="row">
+        <h2>Market</h2>
+        <div class="input-field col s12">
+            <select
+                ng-model="$ctrl.selectedExchange"
+                ng-options="exchange as exchange for exchange in $ctrl.marketData.exchanges"
+                ng-change="$ctrl.onExchangeSelect()">
+            </select>
+            <label>Exchange</label>
+        </div>
+        <!-- <div class="input-field col s12">
+            <select ng-model="$ctrl.selectedSymbol">
+                <option ng-repeat="symbol in $ctrl.symbols">{{ symbol }}</option>
+            </select>
+            <label>Symbols</label>
+        </div> -->
+    </div>
+    <div class="row">
+        <div class="input-field col s6" id="symbols-list">
+            <select ng-model="$ctrl.selectedCurrency" ng-change="$ctrl.onCurrencySelect($ctrl.selectedCurrency)">
+                <option ng-repeat="currency in $ctrl.exchange_data.currencies.base_currencies">{{ currency }}</option>
+                <!-- <option ng-repeat="symbol in $ctrl.symbols">{{ symbol }}</option> -->
+            </select>
+            <!-- <select ng-model="$ctrl.selectedSymbol"
+                    ng-options="symbol for symbol in $ctrl.symbols">
+                <option ng-repeat="symbol in $ctrl.symbols track by $index">{{ symbol }}</option>
+                <option ng-repeat="symbol in $ctrl.symbols">{{ symbol }}</option>
+            </select> -->
+            <label>Currency</label>
+        </div>
+        <div class="input-field col s6" id="symbols-list">
+            <select ng-model="$ctrl.selectedSymbol">
+                <option ng-repeat="symbol in $ctrl.exchange_data.currencies.currencies[$ctrl.selectedCurrency]">{{ symbol }}</option>
+                <!-- <option ng-repeat="symbol in $ctrl.symbols">{{ symbol }}</option> -->
+            </select>
+            <!-- <select ng-model="$ctrl.selectedSymbol"
+                    ng-options="symbol for symbol in $ctrl.symbols">
+                <option ng-repeat="symbol in $ctrl.symbols track by $index">{{ symbol }}</option>
+                <option ng-repeat="symbol in $ctrl.symbols">{{ symbol }}</option>
+            </select> -->
+            <label>Symbols</label>
+        </div>
+    </div>
+    <!-- <div class="row"> -->
+    <!-- </div> -->
+    <div class="row">
+        <a class="waves-effect waves-light btn" ng-click="$ctrl.addSymbol($ctrl.selectedCurrency,
+            $ctrl.selectedSymbol)">Add symbol</a>
+        <span class="red-text text-darken-1" ng-if="$ctrl.tickersList.length >= $ctrl.tickersListLimit">Tickers limit is reached!
+        </span>
+    </div>
+    <div class="row">
+      <ul class="collection">
+        <li class="collection-item dismissable" ng-repeat="ticker in $ctrl.tickersList">
+            <div>{{ ticker }}
+                <a href="#!" class="secondary-content">
+                <i class="material-icons" ng-click="$ctrl.removeSymbol(ticker)">delete</i></a>
+            </div>
+        </li>
+      </ul>
+    </div>
+    <div class="row">
+        <div class="col s6">
+            <h2>Strategy</h2>
+            <div class="input-field col s12">
+                <select>
+                    <!-- <option value="" disabled selected>Please </option> -->
+                    <option value="1" selected >Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
+                <label>Trading strategy</label>
+            </div>
+            <div class="input-field col s12">
+                <select>
+                    <!-- <option value="" disabled selected>Please </option> -->
+                    <option value="1" selected >Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
+                <label>Risk manager</label>
+            </div>
+            <div class="input-field col s12">
+                <select>
+                    <!-- <option value="" disabled selected>Please </option> -->
+                    <option value="1" selected >Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
+                <label>Candle timeframe</label>
+            </div>
+            <div class="input-field col s12">
+                <input value="1000" id="first_name2" type="text" class="validate">
+                <label class="active" for="first_name2">Capital</label>
+            </div>
+        </div>
+        <div class="col s6">
+            <h2>Parameters</h2>
+            <div class="input-field col s12">
+              <textarea id="textarea1" class="materialize-textarea"></textarea>
+              <label for="textarea1">Strategy parameters</label>
+            </div>
+        </div>
+    </div>
+</form>

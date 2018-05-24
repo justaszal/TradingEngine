@@ -17,16 +17,14 @@ const candlestickChartComponent = {
 
       this.tradingSessionService.startBacktestSession()
         .then((response) => {
-          // console.log(response);
           const backtestReport = response.data;
           const candles = this.tradingSessionService.dataframeToCandlesAndVolumeArray(
             backtestReport.tickers_data);
-          // console.log(candles['BTC/USDT']);
 
           Object.keys(candles).forEach((ticker, index) => {
             const candle = candles[ticker];
 
-            let chartConfig = this.candlestickChartService.createCandlestickChartConfiguration(
+            let chartConfig = this.candlestickChartService.initCandlestickChartConfiguration(
               `${ticker} backtest result`,
             );
             chartConfig = this.candlestickChartService.setRangeSelectors(chartConfig);
@@ -39,8 +37,6 @@ const candlestickChartComponent = {
 
             const chartName = `${this.baseChartName}${index}`;
             this.stockChartNames.push(chartName);
-            console.log(this.stockChartNames);
-            console.log(chartName);
 
             this.$timeout(() => {
               Highcharts.stockChart(chartName, chartConfig);

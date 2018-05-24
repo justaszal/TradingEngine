@@ -1,3 +1,8 @@
-<div class="row">
-  <candlestick-chart></candlestick-chart>
+<div class="container">
+    <div>
+        <session-configuration market-data="$ctrl.marketData" on-session-start="$ctrl.onSessionStart"></session-configuration>
+    </div>
+    <div class="row">
+        <candlestick-chart ng-if="$ctrl.sessionStarted"></candlestick-chart>
+    </div>
 </div>

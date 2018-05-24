@@ -10,4 +10,7 @@ export default angular
   .constant('servicesRegistry', {
     trader: '0.0.0.0:8081',
   })
+  .constant('supportedCoins', {
+    coins: ['BTC', 'XBT', 'ETH', 'BCH', 'LTC', 'XRP', 'USDT', 'USD', 'EUR'],
+  })
   .name;

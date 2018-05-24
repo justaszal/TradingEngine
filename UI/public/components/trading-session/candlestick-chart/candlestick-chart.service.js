@@ -9,7 +9,7 @@ export default function candlestickChartService() {
     ['month', [1, 2, 3, 4, 6]],
   ];
 
-  function createCandlestickChartConfiguration(title, groupingUnits = groupingUnitsDefault,
+  function initCandlestickChartConfiguration(title, groupingUnits = groupingUnitsDefault,
     rangeSelected = 5, split = true) {
     return {
       rangeSelector: {
@@ -159,8 +159,24 @@ export default function candlestickChartService() {
     };
   }
 
+  function defaultCandlestickConfigurartion(cfg, ticker, ohlc, volume) {
+    let chartConfig = initCandlestickChartConfiguration(
+      `${ticker} backtest result`,
+    );
+    chartConfig = setRangeSelectors(chartConfig);
+    chartConfig = candlestickChartService.setOhlcvYaxis(chartConfig);
+    chartConfig = candlestickChartService.setSeriesCandles(chartConfig,
+      ohlc, ticker);
+    chartConfig = candlestickChartService.setSeriesVolume(chartConfig,
+      volume);
+    chartConfig = candlestickChartService.styleScrollbar(chartConfig);
+
+    return chartConfig;
+  }
+
   return {
-    createCandlestickChartConfiguration,
+    initCandlestickChartConfiguration,
+    defaultCandlestickConfigurartion,
     styleScrollbar,
     setOhlcvYaxis,
     setRangeSelectors,
