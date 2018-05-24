@@ -1,4 +1,5 @@
 import json
+import pandas as pd
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -6,6 +7,8 @@ class JSONEncoder(json.JSONEncoder):
     def encode_json(self, obj):
         if hasattr(obj, 'toJSON'):
             return obj.toJSON()
+        elif isinstance(obj, pd.DataFrame):
+            return obj.to_dict()
         elif isinstance(obj, dict):
             d = {}
 
