@@ -220,7 +220,7 @@ def start_server(args):
     app.router.add_get('/get_exchanges', get_exchanges)
     app.router.add_get('/get_exchange', get_exchange)
     app.router.add_get('/get_market', get_market)
-    # Configure CORS on all routes.
+    # Allow CORS on all routes.
     setup_cors(app)
 
     return app

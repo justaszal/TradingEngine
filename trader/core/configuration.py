@@ -61,7 +61,7 @@ def get_packages_modules(packages, ignore=False):
 
     for package in packages:
         package_name = package.__name__.split('.')[-1] if ignore else None
-        modules[package.__name__] = get_package_modules(package, package_name)
+        modules[package_name] = get_package_modules(package, package_name)
 
     return modules
 
