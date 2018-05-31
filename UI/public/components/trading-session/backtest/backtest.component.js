@@ -33,7 +33,7 @@ const backtestComponent = {
       this.sessionStarted = false;
       console.log(this.onSessionStart);
     }
-
+    // TODO: set sessionStarted to true
     onSessionStart() {
 
     }

@@ -7,6 +7,7 @@ import tradingSessionService from './trading-session.service';
 import sessionConfigurationComponent
   from './session-configuration/session-configuration.component';
 import symbolsFilter from './session-configuration/session-configuration.filter';
+import sessionConfigurationService from './session-configuration/session-configuration.service';
 
 export default angular
   .module('tradingSessionModule', [])
@@ -16,5 +17,6 @@ export default angular
   .component('sessionConfiguration', sessionConfigurationComponent)
   .factory('candlestickChartService', candlestickChartService)
   .service('tradingSessionService', tradingSessionService)
+  .factory('sessionConfigurationService', sessionConfigurationService)
   .filter('symbolsFilter', symbolsFilter)
   .name;
